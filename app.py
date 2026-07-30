@@ -28,7 +28,7 @@ def transcribe(audio: UploadFile = File(...)):
             HF_API_URL,
             headers=headers,
             data=audio_bytes,
-            timeout=60,
+            timeout=300,
         )
     except requests.exceptions.RequestException:
         raise HTTPException(status_code=502, detail="Hugging Face API unreachable")
