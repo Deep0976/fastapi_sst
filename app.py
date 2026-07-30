@@ -19,8 +19,8 @@ def transcribe(audio: UploadFile = File(...)):
             data=audio_bytes,
             timeout=60,
         )
-    except requests.exceptions.RequestException:
-        raise HTTPException(status_code=502, detail="Hugging Face API unreachable")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Hugging Face API unreachable: {e}")
 
     if not response.ok:
         raise HTTPException(status_code=response.status_code, detail=response.text)
