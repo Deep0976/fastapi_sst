@@ -23,23 +23,25 @@ NORMALIZE_PROMPT = (
 )
 
 def normalize_to_hindi(text: str) -> str:
-    try:
-        response = requests.post(
-            HF_CHAT_URL,
-            headers={"Authorization": f"Bearer {HF_API_TOKEN}"},
-            json={
-                "model": "meta-llama/Llama-3.1-8B-Instruct",
-                "messages": [
-                    {"role": "system", "content": NORMALIZE_PROMPT},
-                    {"role": "user", "content": text},
-                ],
-            },
-            timeout=60,
-        )
-        response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
-    except requests.exceptions.RequestException:
-        return text
+    for attempt in range(2):
+        try:
+            response = requests.post(
+                HF_CHAT_URL,
+                headers={"Authorization": f"Bearer {HF_API_TOKEN}"},
+                json={
+                    "model": "meta-llama/Llama-3.1-8B-Instruct",
+                    "messages": [
+                        {"role": "system", "content": NORMALIZE_PROMPT},
+                        {"role": "user", "content": text},
+                    ],
+                },
+                timeout=60,
+            )
+            response.raise_for_status()
+            return response.json()["choices"][0]["message"]["content"]
+        except requests.exceptions.RequestException:
+            if attempt == 1:
+                return text
 
 @app.post("/transcribe")
 def transcribe(audio: UploadFile = File(...)):
