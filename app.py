@@ -12,10 +12,14 @@ HF_API_TOKEN = os.environ["HF_API_TOKEN"]
 def transcribe(audio: UploadFile = File(...)):
     audio_bytes = audio.file.read()
 
+    headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
+    if audio.content_type:
+        headers["Content-Type"] = audio.content_type
+
     try:
         response = requests.post(
             HF_API_URL,
-            headers={"Authorization": f"Bearer {HF_API_TOKEN}"},
+            headers=headers,
             data=audio_bytes,
             timeout=60,
         )
