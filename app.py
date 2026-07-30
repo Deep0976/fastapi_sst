@@ -23,7 +23,7 @@ def transcribe(audio: UploadFile = File(...)):
     headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
     payload = {
         "inputs": base64.b64encode(audio_bytes).decode("utf-8"),
-        "parameters": {"language": "hi"},
+        "parameters": {"generate_kwargs": {"language": "hi"}},
     }
 
     try:
