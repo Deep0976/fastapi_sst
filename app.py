@@ -5,7 +5,7 @@ import os
 app = FastAPI()
 
 HF_MODEL = os.environ.get("HF_MODEL", "openai/whisper-base")
-HF_API_URL = f"https://api-inference.huggingface.co/models/{HF_MODEL}"
+HF_API_URL = f"https://router.huggingface.co/hf-inference/models/{HF_MODEL}"
 HF_API_TOKEN = os.environ["HF_API_TOKEN"]
 
 @app.post("/transcribe")
