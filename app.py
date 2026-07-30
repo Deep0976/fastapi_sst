@@ -13,7 +13,33 @@ app.add_middleware(
 
 HF_MODEL = os.environ.get("HF_MODEL", "openai/whisper-base")
 HF_API_URL = f"https://router.huggingface.co/hf-inference/models/{HF_MODEL}"
+HF_CHAT_URL = "https://router.huggingface.co/v1/chat/completions"
 HF_API_TOKEN = os.environ["HF_API_TOKEN"]
+
+NORMALIZE_PROMPT = (
+    "You convert Hindi/Urdu text into Hindi written in Devanagari script. "
+    "Do not translate the meaning or language, only convert the script if needed. "
+    "Output only the converted text, nothing else."
+)
+
+def normalize_to_hindi(text: str) -> str:
+    try:
+        response = requests.post(
+            HF_CHAT_URL,
+            headers={"Authorization": f"Bearer {HF_API_TOKEN}"},
+            json={
+                "model": "meta-llama/Llama-3.1-8B-Instruct",
+                "messages": [
+                    {"role": "system", "content": NORMALIZE_PROMPT},
+                    {"role": "user", "content": text},
+                ],
+            },
+            timeout=60,
+        )
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+    except requests.exceptions.RequestException:
+        return text
 
 @app.post("/transcribe")
 def transcribe(audio: UploadFile = File(...)):
@@ -36,4 +62,8 @@ def transcribe(audio: UploadFile = File(...)):
     if not response.ok:
         raise HTTPException(status_code=response.status_code, detail=response.text)
 
-    return response.json()
+    result = response.json()
+    if "text" in result:
+        result["text"] = normalize_to_hindi(result["text"])
+
+    return result
